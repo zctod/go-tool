@@ -1,1 +1,1 @@
-module tool
+module github.com/zctod/tool

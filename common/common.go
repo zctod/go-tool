@@ -1,5 +1,5 @@
 // 小工具包
-package tool
+package common
 
 import (
 	"encoding/json"

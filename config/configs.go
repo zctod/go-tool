@@ -4,12 +4,12 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/zctod/tool/common"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
-	"tool"
 )
 
 // 写入配置项
@@ -22,7 +22,7 @@ func writeConfig(config interface{}, path string) {
 	t := reflect.TypeOf(config).Elem()
 	for i := 0; i < t.NumField(); i++ {
 		var defValue string
-		field := tool.CamelToUnderline(t.Field(i).Name)
+		field := common.CamelToUnderline(t.Field(i).Name)
 		tag := t.Field(i).Tag.Get("config")
 		if tag != "" {
 			tagArr := strings.Split(tag, ";")
@@ -69,7 +69,7 @@ func InitConfig(config interface{}, path string) {
 			continue
 		}
 		value := reflect.ValueOf(strArr[1])
-		field := tool.UnderlineToCamel(strArr[0])
+		field := common.UnderlineToCamel(strArr[0])
 		c.FieldByName(field).Set(value)
 	}
 }
