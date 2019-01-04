@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -16,10 +17,28 @@ func writeConfig(config interface{}, path string) {
 	if err != nil {
 		panic(err)
 	}
-	t := reflect.TypeOf(config)
+	t := reflect.TypeOf(config).Elem()
 	for i := 0; i < t.NumField(); i++ {
+		var defValue string
 		field := camelToUnderline(t.Field(i).Name)
-		_, err := file.WriteString(field + "=\n")
+		tag := t.Field(i).Tag.Get("config")
+		if tag != "" {
+			tagArr := strings.Split(tag, ";")
+			for _, v := range tagArr {
+				if v != "" {
+					sts, err := regexp.MatchString("^default:", v)
+					if err != nil {
+						fmt.Println(err)
+					}
+					if sts == true {
+						defVauleArr := strings.Split(v, "default:")
+						defValue = defVauleArr[1]
+						break
+					}
+				}
+			}
+		}
+		_, err := file.WriteString(field + "=" + defValue + "\n")
 		if err != nil {
 			fmt.Println(err)
 		}
