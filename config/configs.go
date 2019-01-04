@@ -2,7 +2,6 @@
 package config
 
 import (
-	"../../tool"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +9,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"tool/common"
 )
 
 // 写入配置项
