@@ -1,7 +1,8 @@
-// config 配置包
+// 配置包
 package config
 
 import (
+	"../../tool"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-// writeConfig 写入配置项
+// 写入配置项
 func writeConfig(config interface{}, path string) {
 	file, err := os.Create(path)
 	defer file.Close()
@@ -21,7 +22,7 @@ func writeConfig(config interface{}, path string) {
 	t := reflect.TypeOf(config).Elem()
 	for i := 0; i < t.NumField(); i++ {
 		var defValue string
-		field := camelToUnderline(t.Field(i).Name)
+		field := tool.CamelToUnderline(t.Field(i).Name)
 		tag := t.Field(i).Tag.Get("config")
 		if tag != "" {
 			tagArr := strings.Split(tag, ";")
@@ -46,7 +47,7 @@ func writeConfig(config interface{}, path string) {
 	}
 }
 
-// InitConfig 初始化配置
+// 初始化配置
 func InitConfig(config interface{}, path string) {
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -68,48 +69,7 @@ func InitConfig(config interface{}, path string) {
 			continue
 		}
 		value := reflect.ValueOf(strArr[1])
-		field := underlineToCamel(strArr[0])
+		field := tool.UnderlineToCamel(strArr[0])
 		c.FieldByName(field).Set(value)
 	}
-}
-
-// camelToUnderline 字符串驼峰转下划线
-func camelToUnderline(s string) string {
-	num := len(s)
-	data := make([]byte, 0, num * 2)
-	j := false
-	for i := 0; i < num; i++ {
-		d := s[i]
-		if i > 0 && d >= 'A' && d <= 'Z' && j {
-			data = append(data, '_')
-		}
-		if d != '_' {
-			j = true
-		}
-		data = append(data, d)
-	}
-	return strings.ToLower(string(data[:]))
-}
-
-// underlineToCamel 字符串下划线转驼峰
-func underlineToCamel(s string) string {
-	data := make([]byte, 0, len(s))
-	j, k := false, false
-	num := len(s) - 1
-	for i := 0; i <= num; i++ {
-		d := s[i]
-		if k == false && d >= 'A' && d <= 'Z' {
-			k = true
-		}
-		if d >= 'a' && d <= 'z' && (j || k == false) {
-			d = d - 32
-			j, k = false, true
-		}
-		if k && d == '_' && num > i && s[i + 1] >= 'a' && s[i + 1] <= 'z' {
-			j = true
-			continue
-		}
-		data = append(data, d)
-	}
-	return string(data[:])
 }

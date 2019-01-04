@@ -1,4 +1,4 @@
-// tool 小工具包
+// 小工具包
 package tool
 
 import (
@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -48,4 +49,45 @@ func JsonToMap(s interface{}) (data map[string]interface{}) {
 
 	_ = json.Unmarshal(jsonStr, &data)
 	return
+}
+
+// 字符串驼峰转下划线
+func CamelToUnderline(s string) string {
+	num := len(s)
+	data := make([]byte, 0, num * 2)
+	j := false
+	for i := 0; i < num; i++ {
+		d := s[i]
+		if i > 0 && d >= 'A' && d <= 'Z' && j {
+			data = append(data, '_')
+		}
+		if d != '_' {
+			j = true
+		}
+		data = append(data, d)
+	}
+	return strings.ToLower(string(data[:]))
+}
+
+// 字符串下划线转驼峰
+func UnderlineToCamel(s string) string {
+	data := make([]byte, 0, len(s))
+	j, k := false, false
+	num := len(s) - 1
+	for i := 0; i <= num; i++ {
+		d := s[i]
+		if k == false && d >= 'A' && d <= 'Z' {
+			k = true
+		}
+		if d >= 'a' && d <= 'z' && (j || k == false) {
+			d = d - 32
+			j, k = false, true
+		}
+		if k && d == '_' && num > i && s[i + 1] >= 'a' && s[i + 1] <= 'z' {
+			j = true
+			continue
+		}
+		data = append(data, d)
+	}
+	return string(data[:])
 }
