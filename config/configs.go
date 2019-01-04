@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
-	"tool/common"
+	"tool"
 )
 
 // 写入配置项
