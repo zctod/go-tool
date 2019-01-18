@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -54,7 +55,7 @@ func JsonToMap(s interface{}) (data map[string]interface{}) {
 // 字符串驼峰转下划线
 func CamelToUnderline(s string) string {
 	num := len(s)
-	data := make([]byte, 0, num * 2)
+	data := make([]byte, 0, num*2)
 	j := false
 	for i := 0; i < num; i++ {
 		d := s[i]
@@ -83,11 +84,29 @@ func UnderlineToCamel(s string) string {
 			d = d - 32
 			j, k = false, true
 		}
-		if k && d == '_' && num > i && s[i + 1] >= 'a' && s[i + 1] <= 'z' {
+		if k && d == '_' && num > i && s[i+1] >= 'a' && s[i+1] <= 'z' {
 			j = true
 			continue
 		}
 		data = append(data, d)
 	}
 	return string(data[:])
+}
+
+// 判断元素是否存在数组中
+func InArray(val interface{}, array interface{}) (exists bool, index int) {
+	exists = false
+	index = -1
+	switch reflect.TypeOf(array).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(array)
+		for i := 0; i < s.Len(); i++ {
+			if reflect.DeepEqual(val, s.Index(i).Interface()) == true {
+				index = i
+				exists = true
+				return
+			}
+		}
+	}
+	return
 }
