@@ -4,67 +4,96 @@ package curl
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
-func CurlGet(url string) (map[string]interface{}, error) {
-	res, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
+func httpCurl(method, urlVal, data string, headerMap map[string]string, cookieMap map[string]string) ([]byte, error) {
+
+	client := &http.Client{}
+	var req *http.Request
+
+	if data == "" {
+		urlArr := strings.Split(urlVal, "?")
+		if len(urlArr) == 2 {
+			//将GET请求的参数进行转义
+			urlVal = urlArr[0] + "?" + url.PathEscape(urlArr[1])
+		}
+		req, _ = http.NewRequest(method, urlVal, nil)
+	} else {
+		req, _ = http.NewRequest(method, urlVal, strings.NewReader(data))
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	defer func() {
-		if err := res.Body.Close(); err != nil {
-			log.Fatal(err)
+	//添加cookie，key为X-Xsrftoken，value为df41ba54db5011e89861002324e63af81
+	//可以添加多个cookie
+	//cookie1 := &http.Cookie{Name: "X-Xsrftoken", Value: "df41ba54db5011e89861002324e63af81", HttpOnly: true}
+	//req.AddCookie(cookie1)
+	if len(cookieMap) > 0 {
+		for ck, cv := range cookieMap {
+			req.AddCookie(&http.Cookie{
+				Name: ck,
+				Value: cv,
+				HttpOnly: true,
+			})
 		}
-	}()
+	}
+
+	//添加header，key为X-Xsrftoken，value为b6d695bbdcd111e8b681002324e63af81
+	//req.Header.Add("X-Xsrftoken", "b6d695bbdcd111e8b681002324e63af81")
+	if len(headerMap) > 0 {
+		for hk, hv := range headerMap {
+			req.Header.Add(hk, hv)
+		}
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
+	defer resp.Body.Close()
+
+	b, err := ioutil.ReadAll(resp.Body)
+	return b, nil
+}
+
+func ToMap(b []byte) (map[string]interface{}, error) {
 
 	var mapResult map[string]interface{}
-
-	if err := json.Unmarshal([]byte(string(body)), &mapResult); err != nil {
-		log.Fatal(err)
+	if err := json.Unmarshal([]byte(string(b)), &mapResult); err != nil {
 		return nil, err
 	}
 	return mapResult, nil
 }
 
-func CurlPost(dataMap map[string]interface{}) map[string]interface{} {
+func CurlGet(url string, headerMap map[string]string) (map[string]interface{}, error) {
+	b, err := httpCurl("GET", url, "", headerMap, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := ToMap(b)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func CurlPost(url string, dataMap map[string]interface{}, headerMap map[string]string) (map[string]interface{}, error) {
+
 	dataJson, err := json.Marshal(dataMap)
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return nil, err
 	}
 
-	res, err := http.Post("http://127.0.0.1:8080/json", "application/json; encoding=utf-8", strings.NewReader(string(dataJson)))
+	b, err := httpCurl("POST", url, string(dataJson), headerMap, nil)
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	defer func() {
-		if err := res.Body.Close(); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	res, err := ToMap(b)
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return nil, err
 	}
-
-	var mapResult map[string]interface{}
-
-	if err := json.Unmarshal([]byte(string(body)), &mapResult); err != nil {
-		log.Fatal(err)
-		return nil
-	}
-	return mapResult
+	return res, nil
 }
