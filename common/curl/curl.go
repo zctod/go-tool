@@ -67,6 +67,7 @@ func ToMap(b []byte) (map[string]interface{}, error) {
 }
 
 func CurlGet(url string, headerMap map[string]string) (map[string]interface{}, error) {
+
 	b, err := httpCurl("GET", url, "", headerMap, nil)
 	if err != nil {
 		return nil, err
@@ -81,12 +82,15 @@ func CurlGet(url string, headerMap map[string]string) (map[string]interface{}, e
 
 func CurlPost(url string, dataMap map[string]interface{}, headerMap map[string]string) (map[string]interface{}, error) {
 
-	dataJson, err := json.Marshal(dataMap)
-	if err != nil {
-		return nil, err
+	var dataStr = ""
+	for k, v := range dataMap {
+		if dataStr != "" {
+			dataStr += "&"
+		}
+		dataStr += k + "=" + v.(string)
 	}
 
-	b, err := httpCurl("POST", url, string(dataJson), headerMap, nil)
+	b, err := httpCurl("POST", url, dataStr, headerMap, nil)
 	if err != nil {
 		return nil, err
 	}
