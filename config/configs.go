@@ -69,7 +69,7 @@ func InitConfig(config interface{}, path string) {
 			continue
 		}
 		value := reflect.ValueOf(strArr[1])
-		field := common.UnderlineToCamel(strArr[0])
+		field := utils.UnderlineToCamel(strArr[0])
 		c.FieldByName(field).Set(value)
 	}
 }
