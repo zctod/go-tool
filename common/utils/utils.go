@@ -1,5 +1,4 @@
-// 小工具包
-package common
+package utils
 
 import (
 	"encoding/json"
