@@ -4,7 +4,7 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/zctod/tool/common"
+	"github.com/zctod/tool/common/utils"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -22,7 +22,7 @@ func writeConfig(config interface{}, path string) {
 	t := reflect.TypeOf(config).Elem()
 	for i := 0; i < t.NumField(); i++ {
 		var defValue string
-		field := common.CamelToUnderline(t.Field(i).Name)
+		field := utils.CamelToUnderline(t.Field(i).Name)
 		tag := t.Field(i).Tag.Get("config")
 		if tag != "" {
 			tagArr := strings.Split(tag, ";")
