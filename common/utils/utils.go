@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"math/rand"
 	"os"
@@ -108,4 +110,11 @@ func InArray(val interface{}, array interface{}) (exists bool, index int) {
 		}
 	}
 	return
+}
+
+// md5加密并转string
+func MD5(str string) string {
+	var m = md5.New()
+	m.Write([]byte(str))
+	return hex.EncodeToString(m.Sum(nil))
 }
