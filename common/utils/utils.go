@@ -40,17 +40,35 @@ func PathCreate(path string) error {
 	return nil
 }
 
-// json结果转map
+// 兼容原始方法
 func JsonToMap(s interface{}) (data map[string]interface{}) {
-	jsonStr, e := json.Marshal(&s)
-	if e != nil {
-		panic(e)
+	data, _ = StrcutToMap(s)
+	return
+}
+
+// 结构体转map
+func StrcutToMap(s interface{}) (map[string]interface{}, error) {
+	jsonStr, err := json.Marshal(&s)
+	if err != nil {
+		return nil, err
 	}
 	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
 	jsonStr = []byte(re.ReplaceAllString(string(jsonStr), "$1"))
 
-	_ = json.Unmarshal(jsonStr, &data)
-	return
+	var data map[string]interface{}
+	err = json.Unmarshal(jsonStr, &data)
+	return data, err
+}
+
+// 结构体数组转map数组
+func ArrayStructToMap(s interface{}) ([]map[string]interface{}, error) {
+	jsonStr, err := json.Marshal(&s)
+	if err != nil {
+		return nil, err
+	}
+	var data []map[string]interface{}
+	err = json.Unmarshal(jsonStr, &data)
+	return data, err
 }
 
 // 字符串驼峰转下划线
