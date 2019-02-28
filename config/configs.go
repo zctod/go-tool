@@ -13,12 +13,12 @@ import (
 )
 
 // 写入配置项
-func writeConfig(config interface{}, path string) {
+func writeConfig(config interface{}, path string) error {
 
 	file, err := utils.CreateFile(path)
 	defer file.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	t := reflect.TypeOf(config).Elem()
 	for i := 0; i < t.NumField(); i++ {
@@ -55,19 +55,21 @@ func writeConfig(config interface{}, path string) {
 			fmt.Println(err)
 		}
 	}
+	return nil
 }
 
 // 初始化配置
-func InitConfig(config interface{}, path string) {
+func InitConfig(config interface{}, path string) error {
 
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			writeConfig(config, path)
-			panic(errors.New("env is not exist, automatically generated and filled in"))
-		} else {
-			panic(err)
+			err = writeConfig(config, path)
+			if err == nil {
+				return errors.New("env is not exist, automatically generated and filled in")
+			}
 		}
+		return err
 	}
 
 	c := reflect.ValueOf(config).Elem()
@@ -86,4 +88,5 @@ func InitConfig(config interface{}, path string) {
 		field := utils.UnderlineToCamel(strArr[0])
 		c.FieldByName(field).Set(value)
 	}
+	return nil
 }
