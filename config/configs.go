@@ -76,7 +76,7 @@ func InitConfig(config interface{}, path string) error {
 
 	arr := strings.Split(string(body), "\n")
 	for _, v := range arr {
-		r, _ := regexp.Compile(` //[\s\S]*$|^//[\s\S]*$`)
+		r, _ := regexp.Compile(`\s+//[\s\S]*$|^//[\s\S]*$`)
 		v = r.ReplaceAllString(v, "")
 
 		v = strings.Replace(v, " ", "", -1)
