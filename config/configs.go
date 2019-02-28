@@ -21,7 +21,7 @@ func writeConfig(config interface{}, path string) {
 	}
 	t := reflect.TypeOf(config).Elem()
 	for i := 0; i < t.NumField(); i++ {
-		var defValue string
+		var defVal, ctVal string
 		field := utils.CamelToUnderline(t.Field(i).Name)
 		tag := t.Field(i).Tag.Get("config")
 		if tag != "" {
@@ -33,14 +33,23 @@ func writeConfig(config interface{}, path string) {
 						fmt.Println(err)
 					}
 					if sts == true {
-						defVauleArr := strings.Split(v, "default:")
-						defValue = defVauleArr[1]
-						break
+						defValArr := strings.Split(v, "default:")
+						defVal = defValArr[1]
+						continue
+					}
+					sts, err = regexp.MatchString("^comment:", v)
+					if err != nil {
+						fmt.Println(err)
+					}
+					if sts == true {
+						ctValArr := strings.Split(v, "comment:")
+						ctVal = "  //" + ctValArr[1]
+						continue
 					}
 				}
 			}
 		}
-		_, err := file.WriteString(field + "=" + defValue + "\n")
+		_, err := file.WriteString(field + "=" + defVal + ctVal + "\n")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -63,6 +72,9 @@ func InitConfig(config interface{}, path string) {
 
 	arr := strings.Split(string(body), "\n")
 	for _, v := range arr {
+		r, _ := regexp.Compile(` //[\s\S]*$|^//[\s\S]*$`)
+		v = r.ReplaceAllString(v, "")
+
 		v = strings.Replace(v, " ", "", -1)
 		strArr := strings.Split(v, "=")
 		if len(strArr) != 2 {

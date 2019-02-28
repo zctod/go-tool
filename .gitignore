@@ -13,3 +13,5 @@
 
 .idea/*
 test/*
+env
+go.sum
