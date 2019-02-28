@@ -40,6 +40,20 @@ func PathCreate(path string) error {
 	return nil
 }
 
+//自动生成全路径文件
+func CreateFile(path string) (*os.File, error) {
+
+	var pathArr = strings.Split(path, "/")
+	var pathLen = len(pathArr)
+
+	dir := strings.Join(pathArr[:pathLen-1], "/")
+	if err := PathCreate(dir); err != nil {
+		return nil, err
+	}
+
+	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
+}
+
 // 兼容原始方法
 func JsonToMap(s interface{}) (data map[string]interface{}) {
 	data, _ = StrcutToMap(s)

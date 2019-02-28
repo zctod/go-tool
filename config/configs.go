@@ -14,7 +14,8 @@ import (
 
 // 写入配置项
 func writeConfig(config interface{}, path string) {
-	file, err := os.Create(path)
+
+	file, err := utils.CreateFile(path)
 	defer file.Close()
 	if err != nil {
 		panic(err)
@@ -58,6 +59,7 @@ func writeConfig(config interface{}, path string) {
 
 // 初始化配置
 func InitConfig(config interface{}, path string) {
+
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
