@@ -28,7 +28,7 @@ func writeConfig(config interface{}, path string) {
 			tagArr := strings.Split(tag, ";")
 			for _, v := range tagArr {
 				if v != "" {
-					sts, err := regexp.MatchString("^default:", v)
+					sts, err := regexp.MatchString(`^\s*default:`, v)
 					if err != nil {
 						fmt.Println(err)
 					}
@@ -37,13 +37,13 @@ func writeConfig(config interface{}, path string) {
 						defVal = defValArr[1]
 						continue
 					}
-					sts, err = regexp.MatchString("^comment:", v)
+					sts, err = regexp.MatchString(`^\s*comment:`, v)
 					if err != nil {
 						fmt.Println(err)
 					}
 					if sts == true {
 						ctValArr := strings.Split(v, "comment:")
-						ctVal = "  //" + ctValArr[1]
+						ctVal = "  // " + ctValArr[1]
 						continue
 					}
 				}
