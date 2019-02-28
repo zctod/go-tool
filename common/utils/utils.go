@@ -51,7 +51,7 @@ func CreateFile(path string) (*os.File, error) {
 		return nil, err
 	}
 
-	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
+	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
 }
 
 // 兼容原始方法
