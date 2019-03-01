@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/xml"
 	"math/rand"
 	"os"
 	"reflect"
@@ -149,4 +150,17 @@ func MD5(str string) string {
 	var m = md5.New()
 	m.Write([]byte(str))
 	return hex.EncodeToString(m.Sum(nil))
+}
+
+// map转xml
+func MapToXml(data XmlMap) ([]byte, error) {
+
+	return xml.Marshal(XmlMap(data))
+}
+
+// xml转map
+func XmlToMap(b []byte) (mp XmlMap, err error) {
+
+	err = xml.Unmarshal(b, (*XmlMap)(&mp))
+	return
 }
