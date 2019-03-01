@@ -159,8 +159,9 @@ func MapToXml(data XmlMap) ([]byte, error) {
 }
 
 // xml转map
-func XmlToMap(b []byte) (mp XmlMap, err error) {
+func XmlToMap(b []byte) (XmlMap, error) {
 
-	err = xml.Unmarshal(b, (*XmlMap)(&mp))
-	return
+	var mp = make(XmlMap)
+	err := xml.Unmarshal(b, (*XmlMap)(&mp))
+	return mp, err
 }
