@@ -46,12 +46,12 @@ func CreateFile(path string) (*os.File, error) {
 
 	var pathArr = strings.Split(path, "/")
 	var pathLen = len(pathArr)
-
-	dir := strings.Join(pathArr[:pathLen-1], "/")
-	if err := PathCreate(dir); err != nil {
-		return nil, err
+	if pathLen > 1 {
+		dir := strings.Join(pathArr[:pathLen-1], "/")
+		if err := PathCreate(dir); err != nil {
+			return nil, err
+		}
 	}
-
 	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
 }
 
