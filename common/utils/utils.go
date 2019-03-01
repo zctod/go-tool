@@ -28,11 +28,7 @@ func RandomStr(length int) string {
 //自动创建文件夹
 func PathCreate(path string) error {
 	_, err := os.Stat(path)
-	existSts := true
 	if err != nil {
-		existSts = false
-	}
-	if !existSts {
 		mkErr := os.MkdirAll(path, os.ModePerm)
 		if mkErr != nil {
 			return mkErr
