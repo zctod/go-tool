@@ -59,16 +59,27 @@ func JsonToMap(s interface{}) (data map[string]interface{}) {
 
 // 结构体转map
 func StrcutToMap(s interface{}) (map[string]interface{}, error) {
-	jsonStr, err := json.Marshal(&s)
+	b, err := json.Marshal(&s)
 	if err != nil {
 		return nil, err
 	}
 	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
-	jsonStr = []byte(re.ReplaceAllString(string(jsonStr), "$1"))
+	jsonStr := []byte(re.ReplaceAllString(string(b), "$1"))
 
 	var data map[string]interface{}
 	err = json.Unmarshal(jsonStr, &data)
 	return data, err
+}
+
+// map转结构体
+// s map
+// res 结构体指针地址
+func MapToStruct(s interface{}, res interface{}) error {
+	b, err := json.Marshal(&s)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, res)
 }
 
 // 结构体数组转map数组
