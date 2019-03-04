@@ -10,6 +10,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -162,7 +163,7 @@ func MD5(str string) string {
 }
 
 // map转xml
-func MapToXml(data map[string]string) []byte {
+func MapToXml(data map[string]interface{}) []byte {
 
 	var buf bytes.Buffer
 	buf.WriteString(`<xml>`)
@@ -170,7 +171,34 @@ func MapToXml(data map[string]string) []byte {
 		buf.WriteString(`<`)
 		buf.WriteString(k)
 		buf.WriteString(`><![CDATA[`)
-		buf.WriteString(v)
+		var val string
+		switch v.(type) {
+		case int:
+			val = strconv.Itoa(v.(int))
+			break
+		case int8:
+			val = strconv.Itoa(int(v.(int8)))
+			break
+		case int16:
+			val = strconv.Itoa(int(v.(int16)))
+			break
+		case int32:
+			val = strconv.Itoa(int(v.(int32)))
+			break
+		case int64:
+			val = strconv.Itoa(int(v.(int64)))
+			break
+		case float32:
+			val = strconv.FormatFloat(float64(v.(float32)), 'f', -1, 64)
+			break
+		case float64:
+			val = strconv.FormatFloat(v.(float64), 'f', -1, 64)
+			break
+		default:
+			val = v.(string)
+			break
+		}
+		buf.WriteString(val)
 		buf.WriteString(`]]></`)
 		buf.WriteString(k)
 		buf.WriteString(`>`)
