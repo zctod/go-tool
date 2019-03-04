@@ -162,7 +162,7 @@ func MD5(str string) string {
 }
 
 // map转xml
-func MapToXml(data XmlMap) []byte {
+func MapToXml(data map[string]string) []byte {
 
 	var buf bytes.Buffer
 	buf.WriteString(`<xml>`)
