@@ -162,15 +162,11 @@ func MD5(str string) string {
 	return hex.EncodeToString(m.Sum(nil))
 }
 
-// map转xml
-func MapToXml(data map[string]interface{}) []byte {
+// 通用map转字符串map
+func MapToStringMap(data map[string]interface{}) map[string]string {
 
-	var buf bytes.Buffer
-	buf.WriteString(`<xml>`)
+	var res = make(map[string]string)
 	for k, v := range data {
-		buf.WriteString(`<`)
-		buf.WriteString(k)
-		buf.WriteString(`><![CDATA[`)
 		var val string
 		switch v.(type) {
 		case int:
@@ -198,7 +194,21 @@ func MapToXml(data map[string]interface{}) []byte {
 			val = v.(string)
 			break
 		}
-		buf.WriteString(val)
+		res[k] = val
+	}
+	return res
+}
+
+// map转xml
+func MapToXml(data map[string]string) []byte {
+
+	var buf bytes.Buffer
+	buf.WriteString(`<xml>`)
+	for k, v := range data {
+		buf.WriteString(`<`)
+		buf.WriteString(k)
+		buf.WriteString(`><![CDATA[`)
+		buf.WriteString(v)
 		buf.WriteString(`]]></`)
 		buf.WriteString(k)
 		buf.WriteString(`>`)
