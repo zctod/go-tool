@@ -51,10 +51,14 @@ func CreateFile(path string) (*os.File, error) {
 	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
 }
 
-// 兼容原始方法
+// json转map(兼容，弃用)
 func JsonToMap(s interface{}) (data map[string]interface{}) {
-	data, _ = StrcutToMap(s)
-	return
+	b, _ := json.Marshal(&s)
+	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
+	jsonStr := []byte(re.ReplaceAllString(string(b), "$1"))
+
+	_ = json.Unmarshal(jsonStr, &data)
+	return data
 }
 
 // 结构体转map
@@ -63,11 +67,8 @@ func StrcutToMap(s interface{}) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
-	jsonStr := []byte(re.ReplaceAllString(string(b), "$1"))
-
 	var data map[string]interface{}
-	err = json.Unmarshal(jsonStr, &data)
+	err = json.Unmarshal(b, &data)
 	return data, err
 }
 
