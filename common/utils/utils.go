@@ -2,9 +2,11 @@ package utils
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
@@ -247,7 +249,7 @@ func XmlToMap(b []byte) map[string]string {
 	return params
 }
 
-// RSA加密
+// RSA公钥加密
 func RsaEncrypt(publicKey, origData []byte) ([]byte, error) {
 	block, _ := pem.Decode(publicKey)
 	if block == nil {
@@ -261,7 +263,7 @@ func RsaEncrypt(publicKey, origData []byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, pub, origData)
 }
 
-// RSA解密
+// RSA私钥解密
 func RsaDecrypt(privateKey, ciphertext []byte) ([]byte, error) {
 	block, _ := pem.Decode(privateKey)
 	if block == nil {
@@ -272,4 +274,40 @@ func RsaDecrypt(privateKey, ciphertext []byte) ([]byte, error) {
 		return nil, err
 	}
 	return rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
+}
+
+// RSA私钥签名(基于sha256)
+func RsaSign(privateKey, data []byte) ([]byte, error) {
+	h := sha256.New()
+	h.Write(data)
+	hashed := h.Sum(nil)
+	//获取私钥
+	block, _ := pem.Decode(privateKey)
+	if block == nil {
+		return nil, errors.New("private key error")
+	}
+	//解析PKCS1格式的私钥
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, hashed)
+}
+
+// RSA公钥解签(基于sha256)
+func RsaVerify(publicKey, data, signature []byte) error {
+	hashed := sha256.Sum256(data)
+	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return errors.New("public key error")
+	}
+	// 解析公钥
+	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return err
+	}
+	// 类型断言
+	pub := pubInterface.(*rsa.PublicKey)
+	//验证签名
+	return rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed[:], signature)
 }
