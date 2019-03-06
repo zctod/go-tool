@@ -3,10 +3,15 @@ package utils
 import (
 	"bytes"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"encoding/xml"
-	"math/rand"
+	"errors"
+	rand2 "math/rand"
 	"os"
 	"reflect"
 	"regexp"
@@ -20,7 +25,7 @@ func RandomStr(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	bytes := []byte(str)
 	result := make([]byte, 0)
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand2.New(rand2.NewSource(time.Now().UnixNano()))
 	for i := 0; i < length; i++ {
 		result = append(result, bytes[r.Intn(len(bytes))])
 	}
@@ -240,4 +245,31 @@ func XmlToMap(b []byte) map[string]string {
 		}
 	}
 	return params
+}
+
+// RSA加密
+func RsaEncrypt(publicKey, origData []byte) ([]byte, error) {
+	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return nil, errors.New("public key error")
+	}
+	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	pub := pubInterface.(*rsa.PublicKey)
+	return rsa.EncryptPKCS1v15(rand.Reader, pub, origData)
+}
+
+// RSA解密
+func RsaDecrypt(privateKey, ciphertext []byte) ([]byte, error) {
+	block, _ := pem.Decode(privateKey)
+	if block == nil {
+		return nil, errors.New("private key error!")
+	}
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
 }
