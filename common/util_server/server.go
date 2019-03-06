@@ -1,4 +1,4 @@
-package serverUtils
+package util_server
 
 import (
 	"context"
