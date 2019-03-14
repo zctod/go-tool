@@ -3,9 +3,11 @@ package util_server
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"syscall"
 	"time"
 )
@@ -29,4 +31,21 @@ func GracefulExitWeb(server *http.Server) {
 
 	// 看看实际退出所耗费的时间
 	fmt.Println("延时", time.Since(now), "退出")
+}
+
+// CPU性能查看
+func CpuProf(fc func()) {
+
+	f, err := os.OpenFile("cpu.prof", os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer pprof.StopCPUProfile()
+	fc()
 }
