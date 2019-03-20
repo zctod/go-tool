@@ -6,13 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"reflect"
 	"regexp"
-	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -21,11 +18,11 @@ import (
 // 生成随机字符串
 func RandomStr(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	bytes := []byte(str)
+	b := []byte(str)
 	result := make([]byte, 0)
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < length; i++ {
-		result = append(result, bytes[r.Intn(len(bytes))])
+		result = append(result, b[r.Intn(len(b))])
 	}
 	return string(result)
 }
