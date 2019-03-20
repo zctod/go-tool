@@ -2,7 +2,6 @@ package util_confd
 
 import (
 	"errors"
-	"fmt"
 	"github.com/zctod/tool/common/utils"
 	"io/ioutil"
 	"os"
@@ -57,7 +56,6 @@ func ReadConfig(config interface{}, path string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(m)
 	return SetVal(t, c, m)
 }
 
@@ -136,7 +134,6 @@ func (s ConfigSet) CreateConfigStr(n int) string {
 			str += spaceStr + "[" + item.Name + " END]\n"
 			break
 		case reflect.Slice:
-			fmt.Println(item.Set[0])
 			if k != 0 {
 				str += "\n"
 			}
