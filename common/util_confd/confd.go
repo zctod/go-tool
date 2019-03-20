@@ -372,7 +372,7 @@ func Parse(t reflect.Type) (ConfigSet, error) {
 			if err != nil {
 				goto quit
 			}
-			if field.Type.Kind() == reflect.Slice {
+			if field.Type.Elem().Kind() == reflect.Slice {
 				err = errors.New("slice is support single layer only")
 				goto quit
 			}
