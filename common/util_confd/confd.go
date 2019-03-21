@@ -53,7 +53,7 @@ func ReadConfig(config interface{}, path string) error {
 
 	// 先根据\n截取字符串数组
 	var arr = strings.Split(string(body), "\n")
-	m, err := arrHandleNew(arr)
+	m, err := arrHandle(arr)
 	if err != nil {
 		return err
 	}
