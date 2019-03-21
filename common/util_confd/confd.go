@@ -2,6 +2,7 @@ package util_confd
 
 import (
 	"errors"
+	"fmt"
 	"github.com/zctod/tool/common/utils"
 	"io/ioutil"
 	"os"
@@ -52,7 +53,7 @@ func ReadConfig(config interface{}, path string) error {
 
 	// 先根据\n截取字符串数组
 	var arr = strings.Split(string(body), "\n")
-	m, err := arrHandle(arr)
+	m, err := arrHandleNew(arr)
 	if err != nil {
 		return err
 	}
@@ -143,9 +144,9 @@ func (s ConfigSet) CreateConfigStr(n int) string {
 					str += spaceStr + "// " + comment + "\n"
 				}
 			}
-			str += spaceStr + "-[" + item.Name + "]\n"
+			str += spaceStr + "[" + item.Name + "]\n"
 			str += item.Set.CreateConfigStr(n + SPACENUM)
-			str += spaceStr + "-[" + item.Name + " END]\n"
+			str += spaceStr + "[" + item.Name + " END]\n"
 			break
 		default:
 			str += spaceStr + item.Name + "=" + item.Value
@@ -165,31 +166,52 @@ func SetVal(t reflect.Type, c reflect.Value, m map[string]interface{}) (err erro
 	for k, v := range m {
 		if f, ok := t.FieldByName(k); ok {
 			cv := c.FieldByName(k)
+		exec:
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.String:
-				err := setValue(f, cv, v.(string))
+				err := setValue(f.Type, cv, v.(string))
 				if err != nil {
 					goto quit
 				}
 				break
 			case reflect.Map:
-				if fs, ok := t.FieldByName(k); ok {
-					err = SetVal(fs.Type, cv, v.(map[string]interface{}))
-					if err != nil {
-						goto quit
-					}
+				err = SetVal(f.Type, cv, v.(map[string]interface{}))
+				if err != nil {
+					goto quit
 				}
 				break
 			case reflect.Slice:
+				switch f.Type.Kind() {
+				case reflect.Struct:
+					v = v.([]map[string]interface{})[0]
+					goto exec
+				case reflect.String, reflect.Bool, reflect.Float32, reflect.Float64,
+					reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+					reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+					v = v.([]string)[0]
+					goto exec
+				}
 				elType := cv.Type().Elem()
 				slice := reflect.MakeSlice(cv.Type(), cv.Len(), cv.Cap())
-				for _, vm := range v.([]map[string]interface{}) {
-					el := reflect.New(elType).Elem()
-					err := SetVal(elType, el, vm)
-					if err != nil {
-						goto quit
+
+				if elType.Kind() == reflect.Struct {
+					for _, vm := range v.([]map[string]interface{}) {
+						el := reflect.New(elType).Elem()
+						err := SetVal(elType, el, vm)
+						if err != nil {
+							goto quit
+						}
+						slice = reflect.Append(slice, el)
 					}
-					slice = reflect.Append(slice, el)
+				} else {
+					for _, vm := range v.([]string) {
+						el := reflect.New(elType).Elem()
+						err = setValue(elType, el, vm)
+						if err != nil {
+							goto quit
+						}
+						slice = reflect.Append(slice, el)
+					}
 				}
 				cv.Set(slice)
 				break
@@ -202,10 +224,10 @@ quit:
 }
 
 // 按类型设置值
-func setValue(f reflect.StructField, v reflect.Value, val string) error {
+func setValue(t reflect.Type, v reflect.Value, val string) error {
 
 	var err error
-	switch f.Type.Kind() {
+	switch t.Kind() {
 	case reflect.String:
 		v.SetString(val)
 		break
@@ -252,8 +274,6 @@ func arrHandle(arr []string) (map[string]interface{}, error) {
 	regObjStart, _ := regexp.Compile(`^\s*\[[\s\S]*]\s*$`)
 	regObjPre, _ := regexp.Compile(`^\s*\[`)
 	regPost, _ := regexp.Compile(`]\s*$`)
-	regArrStart, _ := regexp.Compile(`^\s*-\[[\s\S]*]\s*$`)
-	regArrPre, _ := regexp.Compile(`^\s*-\[`)
 	regComment, _ := regexp.Compile(`\s+//[\s\S]*$|^//[\s\S]*$`)
 
 	for k, v := range arr {
@@ -282,33 +302,6 @@ func arrHandle(arr []string) (map[string]interface{}, error) {
 				break
 			}
 			field := utils.UnderlineToCamel(v)
-			m[field] = mc
-			continue
-		}
-		// 数组解析
-		if regArrStart.MatchString(v) {
-			v = regArrPre.ReplaceAllString(v, "")
-			v = regPost.ReplaceAllString(v, "")
-			regEnd, _ := regexp.Compile(`^\s*-\[` + v + ` END]\s*$`)
-			index = 0
-			for kk, vv := range arr {
-				if regEnd.MatchString(vv) {
-					index = kk
-					if k >= index {
-						continue
-					}
-					break
-				}
-			}
-			if k >= index {
-				err = errors.New("env format error")
-				break
-			}
-			mc, err := arrHandle(arr[k+1 : index])
-			if err != nil {
-				break
-			}
-			field := utils.UnderlineToCamel(v)
 			if m[field] == nil {
 				m[field] = make([]map[string]interface{}, 0)
 			}
@@ -324,7 +317,10 @@ func arrHandle(arr []string) (map[string]interface{}, error) {
 			continue
 		}
 		field := utils.UnderlineToCamel(strArr[0])
-		m[field] = strArr[1]
+		if m[field] == nil {
+			m[field] = make([]string, 0)
+		}
+		m[field] = append(m[field].([]string), strArr[1])
 	}
 
 	return m, err
@@ -365,6 +361,7 @@ func Parse(t reflect.Type) (ConfigSet, error) {
 			item.Set = itemSet
 			break
 		case reflect.Slice:
+			fmt.Println(field, field.Type.Elem().Kind())
 			item, err = parseValue(field)
 			if err != nil {
 				goto quit
@@ -372,12 +369,15 @@ func Parse(t reflect.Type) (ConfigSet, error) {
 			if field.Type.Elem().Kind() == reflect.Slice {
 				err = errors.New("slice is support single layer only")
 				goto quit
+			} else if field.Type.Elem().Kind() == reflect.Struct {
+				itemSet, err := Parse(field.Type.Elem())
+				if err != nil {
+					goto quit
+				}
+				item.Set = itemSet
+			} else {
+				item.Kind = field.Type.Elem().Kind()
 			}
-			itemSet, err := Parse(field.Type.Elem())
-			if err != nil {
-				goto quit
-			}
-			item.Set = itemSet
 			break
 		//case reflect.Map:
 		//	item, err = ParseValue(field)
