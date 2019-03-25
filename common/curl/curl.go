@@ -73,11 +73,9 @@ func CurlGet(url string, headerMap map[string]string) (map[string]interface{}, e
 		return nil, err
 	}
 
-	res, err := ToMap(b)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	var res map[string]interface{}
+	err = json.Unmarshal(b, &res)
+	return res, err
 }
 
 func CurlPost(url string, dataMap map[string]interface{}, headerMap map[string]string) (map[string]interface{}, error) {
@@ -95,9 +93,7 @@ func CurlPost(url string, dataMap map[string]interface{}, headerMap map[string]s
 		return nil, err
 	}
 
-	res, err := ToMap(b)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	var res map[string]interface{}
+	err = json.Unmarshal(b, &res)
+	return res, err
 }
