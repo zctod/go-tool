@@ -1,4 +1,4 @@
-module github.com/zctod/tool
+module github.com/zctod/go-tool
 
 go 1.12
 
