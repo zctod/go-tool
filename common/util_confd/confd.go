@@ -3,7 +3,7 @@ package util_confd
 import (
 	"errors"
 	"fmt"
-	"github.com/zctod/tool/common/utils"
+	"github.com/zctod/go-tool/common/utils"
 	"io/ioutil"
 	"os"
 	"reflect"

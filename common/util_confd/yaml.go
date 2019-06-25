@@ -1,7 +1,7 @@
 package util_confd
 
 import (
-	"github.com/zctod/tool/common/utils"
+	"github.com/zctod/go-tool/common/utils"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"

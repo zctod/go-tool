@@ -2,7 +2,7 @@
 package config
 
 import (
-	"github.com/zctod/tool/common/util_confd"
+	"github.com/zctod/go-tool/common/util_confd"
 )
 
 // 写入配置项

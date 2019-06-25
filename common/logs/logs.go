@@ -2,13 +2,14 @@ package logs
 
 import (
 	"fmt"
-	"github.com/zctod/tool/common/utils"
+	"github.com/zctod/go-tool/common/utils"
 	"log"
 	"os"
 	"strings"
 )
 
 func CreateLog(path string) *log.Logger {
+	
 	return log.New(ReadPath(path), "", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
