@@ -14,7 +14,7 @@ func InitYamlConfig(config interface{}, path string) error {
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = WriteConfig(config, path)
+			err = WriteYamlConfig(config, path)
 			if err == nil {
 				return InitYamlConfig(config, path)
 			}
