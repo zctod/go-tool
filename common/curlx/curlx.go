@@ -56,7 +56,10 @@ func (h *HttpReq) buildUrl() {
 	case 1:
 		h.Url += "?" + query.Encode()
 	case 2:
-		h.Url = urlSet[0] + "?" + url.PathEscape(urlSet[1] + "&" + query.Encode())
+		if urlSet[1] != "" {
+			urlSet[1] += "&"
+		}
+		h.Url = urlSet[0] + "?" + url.PathEscape(urlSet[1] + query.Encode())
 	}
 }
 
