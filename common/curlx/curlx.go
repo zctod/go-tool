@@ -17,8 +17,6 @@ const (
 	METHOD_GET  = "GET"
 )
 
-type M map[string]interface{}
-
 type FileInfo struct {
 	Name   string
 	Stream io.Reader
@@ -33,7 +31,8 @@ type HttpReq struct {
 	Url        string
 	Method     string
 	Header     map[string]string
-	Params     M
+	Query      map[string]string
+	Params     map[string]string
 	FormData   FormData
 	Body       []byte
 	BodyReader io.Reader
@@ -42,34 +41,35 @@ type HttpReq struct {
 	Timeout    time.Duration
 }
 
+func (h *HttpReq) buildUrl() {
+	if h.Query == nil || len(h.Query) == 0 {
+		return
+	}
+
+	query := url.Values{}
+	for k, v := range h.Query {
+		query.Set(k, v)
+	}
+
+	urlSet := strings.Split(h.Url, "?")
+	switch len(urlSet) {
+	case 1:
+		h.Url += "?" + query.Encode()
+	case 2:
+		h.Url = urlSet[0] + "?" + url.PathEscape(urlSet[1] + "&" + query.Encode())
+	}
+}
+
 func (h *HttpReq) buildBody() {
 	if h.Body != nil || h.BodyReader != nil {
 		return
 	}
 
-	var data string
+	params := url.Values{}
 	for k, v := range h.Params {
-		if data != "" {
-			data += "&"
-		}
-		data += k + "=" + v.(string)
+		params.Set(k, v)
 	}
-
-	switch h.Method {
-	case METHOD_POST:
-		h.Body = []byte(data)
-		break
-	case METHOD_GET:
-		urlArr := strings.Split(h.Url, "?")
-		if len(urlArr) == 2 {
-			if data != "" {
-				urlArr[1] = urlArr[1] + "&" + data
-			}
-			//将GET请求的参数进行转义
-			h.Url = urlArr[0] + "?" + url.PathEscape(urlArr[1])
-		}
-		break
-	}
+	h.Body = []byte(params.Encode())
 }
 
 func (h *HttpReq) Do() ([]byte, error) {
@@ -91,6 +91,8 @@ func (h *HttpReq) Do() ([]byte, error) {
 		Transport: tr,
 		Timeout:   h.Timeout,
 	}
+
+	h.buildUrl()
 	h.buildBody()
 
 	var bReader io.Reader
