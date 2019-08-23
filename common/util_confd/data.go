@@ -77,7 +77,7 @@ func (s ConfigSet) CreateConfigStr(n int) string {
 		default:
 			str += spaceStr + item.Name + "=" + item.Value
 			if item.Comment != "" {
-				str += " // " + strings.ReplaceAll(item.Comment, "\n", " ")
+				str += " // " + strings.Replace(item.Comment, "\n", " ", -1)
 			}
 			str += "\n"
 			break
