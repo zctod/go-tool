@@ -10,9 +10,7 @@ import (
 // 初始化yaml配置
 func InitYamlConfig(config interface{}, path string) error {
 
-	var err error
-	body, err := ioutil.ReadFile(path)
-	if err != nil {
+	if err := ReadYamlConfig(config, path); err != nil {
 		if os.IsNotExist(err) {
 			err = WriteYamlConfig(config, path)
 			if err == nil {
@@ -21,7 +19,7 @@ func InitYamlConfig(config interface{}, path string) error {
 		}
 		return err
 	}
-	return yaml.Unmarshal(body, config)
+	return nil
 }
 
 // 读取yaml配置信息
@@ -38,7 +36,7 @@ func ReadYamlConfig(config interface{}, path string) error {
 // 自动写yaml配置
 func WriteYamlConfig(config interface{}, path string) error {
 
-	b, err :=  yaml.Marshal(config)
+	b, err := yaml.Marshal(config)
 	if err != nil {
 		return err
 	}
