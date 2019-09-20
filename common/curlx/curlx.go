@@ -59,7 +59,7 @@ func (h *HttpReq) buildUrl() {
 		if urlSet[1] != "" {
 			urlSet[1] += "&"
 		}
-		h.Url = urlSet[0] + "?" + url.PathEscape(urlSet[1] + query.Encode())
+		h.Url = urlSet[0] + "?" + url.PathEscape(urlSet[1]+query.Encode())
 	}
 }
 
@@ -134,9 +134,13 @@ func (h *HttpReq) Get() ([]byte, error) {
 func (h *HttpReq) Post() ([]byte, error) {
 
 	h.Method = METHOD_POST
-	h.Header = map[string]string{
-		"Content-Type": "application/x-www-form-urlencoded",
+	if h.Header == nil {
+		h.Header = make(map[string]string)
 	}
+	if _, ok := h.Header["Content-Type"]; !ok {
+		h.Header["Content-Type"] = "application/x-www-form-urlencoded"
+	}
+
 	return h.Do()
 }
 
